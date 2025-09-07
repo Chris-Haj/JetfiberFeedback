@@ -11,7 +11,7 @@ class Settings:
     
     # OpenAI settings
     OPENAI_API_KEY = os.getenv("openai_key")
-    OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4-turbo-preview")
+    OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-3.5-turbo")
     MAX_TOKENS = int(os.getenv("MAX_TOKENS", "1000"))
     
     # Validate required settings

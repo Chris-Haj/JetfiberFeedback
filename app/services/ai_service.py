@@ -64,7 +64,7 @@ class AIService:
 """
             
             # Get AI analysis
-            response = await openai.ChatCompletion.acreate(
+            response = await openai.client.chat.completions.create(
                 model=self.model,
                 messages=[
                     {"role": "system", "content": "أنت محلل بيانات خبير يقدم تحليلات دقيقة باللغة العربية في تنسيق JSON."},
