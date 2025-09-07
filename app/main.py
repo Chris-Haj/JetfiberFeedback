@@ -32,6 +32,10 @@ app.include_router(feedback_router)
 app.include_router(analysis_router)
 
 # Event handlers
+@app.get("/")
+async def health_check():
+    return {"status": "healthy"}
+
 @app.on_event("startup")
 async def startup_event():
     await connect_to_mongo()
