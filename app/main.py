@@ -33,8 +33,9 @@ app.include_router(analysis_router)
 
 # Event handlers
 @app.get("/")
-async def health_check():
-    return {"status": "healthy"}
+@app.head("/")  # Add HEAD method support
+async def root():
+    return {"message": "JetFiber Feedback API"}
 
 @app.on_event("startup")
 async def startup_event():

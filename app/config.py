@@ -6,8 +6,8 @@ load_dotenv()
 class Settings:
     # MongoDB settings - just use the URL directly
     MONGODB_URL = os.getenv("MONGODB_URL")
-    MONGODB_DATABASE = os.getenv("MONGODB_DATABASE", "feedback_system")
-    COLLECTION_NAME = os.getenv("COLLECTION_NAME", "feedbacks")
+    MONGODB_DATABASE = os.getenv("MONGODB_DATABASE", "feedbacks")
+    COLLECTION_NAME = os.getenv("COLLECTION_NAME", "customer_feedback")
     
     # OpenAI settings
     OPENAI_API_KEY = os.getenv("openai_key")

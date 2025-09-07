@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Query, Depends
+from fastapi import APIRouter, HTTPException, Query, Depends, Path
 from typing import List, Optional
 import logging
 
@@ -16,26 +16,48 @@ async def create_feedback(
     feedback: FeedbackCreate,
     database=Depends(get_database)
 ):
+    """Create a new feedback entry."""
     try:
         result = await feedback_service.create_feedback(feedback, database)
         return result
     except Exception as e:
         logger.error(f"Error in create_feedback endpoint: {e}")
-     
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("", response_model=List[FeedbackResponse])
-async def get_feedbacks(
-    team_id: Optional[int] = Query(None, description="Filter by team ID"),
+async def get_all_feedbacks(
+    skip: int = Query(0, ge=0),
+    limit: int = Query(100, ge=1, le=1000),
     database=Depends(get_database)
 ):
-    """Get feedbacks with optional team_id filter."""
+    """Get all feedbacks with pagination."""
     try:
         feedbacks = await feedback_service.get_feedbacks(
             database=database,
-            team_id=team_id
+            skip=skip,
+            limit=limit
         )
         return feedbacks
     except Exception as e:
-        logger.error(f"Error in get_feedbacks endpoint: {e}")
+        logger.error(f"Error in get_all_feedbacks endpoint: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/{feedback_id}", response_model=FeedbackResponse)
+async def get_feedback_by_id(
+    feedback_id: str = Path(..., description="The ID of the feedback to retrieve"),
+    database=Depends(get_database)
+):
+    """Get a specific feedback by its ID."""
+    try:
+        feedback = await feedback_service.get_feedback_by_id(
+            database=database,
+            feedback_id=feedback_id
+        )
+        if not feedback:
+            raise HTTPException(status_code=404, detail="Feedback not found")
+        return feedback
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error in get_feedback_by_id endpoint: {e}")
         raise HTTPException(status_code=500, detail=str(e))

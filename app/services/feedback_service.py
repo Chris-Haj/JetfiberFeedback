@@ -28,8 +28,8 @@ class FeedbackService:
             feedback_dict = feedback.dict()
             feedback_dict["created_at"] = datetime.utcnow()
             
-            # Insert into MongoDB - FIXED: Using correct collection name
-            collection = database[settings.COLLECTION_NAME]  # This will use "customer_feedback"
+            # Insert into MongoDB
+            collection = database[settings.COLLECTION_NAME]
             result = await collection.insert_one(feedback_dict)
             
             # Retrieve the created feedback
@@ -44,23 +44,17 @@ class FeedbackService:
     async def get_feedbacks(
         self, 
         database,
-        team_id: Optional[int] = None,
         skip: int = 0,
         limit: int = 100
     ) -> List[FeedbackResponse]:
-        """Get feedbacks with optional team_id filter."""
+        """Get all feedbacks with pagination."""
         try:
-            # FIXED: Using correct collection name
-            collection = database[settings.COLLECTION_NAME]  # This will use "customer_feedback"
+            collection = database[settings.COLLECTION_NAME]
             
-            # Build query
-            query = {}
-            if team_id is not None:
-                query["team_id"] = team_id
-            
-            # Execute query
-            cursor = collection.find(query).skip(skip).limit(limit).sort("created_at", -1)
+            # Execute query with pagination
+            cursor = collection.find({}).skip(skip).limit(limit).sort("created_at", -1)
             feedbacks = await cursor.to_list(length=limit)
+            print(feedbacks)
             
             return [self.feedback_helper(feedback) for feedback in feedbacks]
             
@@ -68,11 +62,32 @@ class FeedbackService:
             logger.error(f"Error fetching feedbacks: {e}")
             raise
     
-    async def get_all_feedbacks(self, database) -> List[dict]:
-        """Get all feedbacks for analysis."""
+    async def get_feedback_by_id(self, database, feedback_id: str) -> Optional[FeedbackResponse]:
+        """Get a specific feedback by its ID."""
         try:
-            # FIXED: Using correct collection name
-            collection = database[settings.COLLECTION_NAME]  # This will use "customer_feedback"
+            collection = database[settings.COLLECTION_NAME]
+            
+            # Validate ObjectId format
+            if not ObjectId.is_valid(feedback_id):
+                logger.warning(f"Invalid ObjectId format: {feedback_id}")
+                return None
+            
+            # Find the feedback
+            feedback = await collection.find_one({"_id": ObjectId(feedback_id)})
+            
+            if feedback:
+                return self.feedback_helper(feedback)
+            
+            return None
+            
+        except Exception as e:
+            logger.error(f"Error fetching feedback by ID: {e}")
+            raise
+    
+    async def get_all_feedbacks(self, database) -> List[dict]:
+        """Get all feedbacks for analysis (no filtering, returns raw data)."""
+        try:
+            collection = database[settings.COLLECTION_NAME]
             cursor = collection.find({})
             feedbacks = await cursor.to_list(length=None)
             return feedbacks
