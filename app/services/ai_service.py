@@ -1,4 +1,4 @@
-import openai
+from openai import OpenAI
 import json
 import logging
 from typing import Dict, List
@@ -10,9 +10,9 @@ logger = logging.getLogger(__name__)
 
 class AIService:
     def __init__(self):
-        self.ai = openai.OpenAI(api_key=settings.OPENAI_API_KEY)
-        
-        # openai.api_key = settings.OPENAI_API_KEY
+        # Initialize the OpenAI client
+        self.ai = OpenAI(api_key=settings.OPENAI_API_KEY)
+
         self.model = settings.OPENAI_MODEL
         self.max_tokens = settings.MAX_TOKENS
     
@@ -23,12 +23,10 @@ class AIService:
             unique_teams = len(set(fb.get("team_id") for fb in feedbacks if fb.get("team_id")))
             
             # Prepare feedback data for AI
-            feedback_data = []
-            for fb in feedbacks:
-                feedback_data.append({
-                    "team_id": fb.get("team_id"),
-                    "answers": fb.get("answers", {})
-                })
+            feedback_data = [
+                {"team_id": fb.get("team_id"), "answers": fb.get("answers", {})}
+                for fb in feedbacks
+            ]
             
             # Create prompt for OpenAI
             analysis_prompt = f"""
@@ -78,7 +76,6 @@ class AIService:
             
             ai_result = json.loads(response.choices[0].message.content)
             
-            # Build the final response
             return {
                 "total_feedback_count": len(feedbacks),
                 "teams_analyzed": unique_teams,
