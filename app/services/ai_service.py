@@ -10,7 +10,9 @@ logger = logging.getLogger(__name__)
 
 class AIService:
     def __init__(self):
-        openai.api_key = settings.OPENAI_API_KEY
+        self.ai = openai.OpenAI(api_key=settings.OPENAI_API_KEY)
+        
+        # openai.api_key = settings.OPENAI_API_KEY
         self.model = settings.OPENAI_MODEL
         self.max_tokens = settings.MAX_TOKENS
     
@@ -64,7 +66,7 @@ class AIService:
 """
             
             # Get AI analysis
-            response = await openai.client.chat.completions.create(
+            response = await self.ai.chat.completions.create(
                 model=self.model,
                 messages=[
                     {"role": "system", "content": "أنت محلل بيانات خبير يقدم تحليلات دقيقة باللغة العربية في تنسيق JSON."},
