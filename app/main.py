@@ -23,6 +23,8 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["*"]
+
 )
 
 # Include routers
@@ -37,12 +39,3 @@ async def startup_event():
 @app.on_event("shutdown")
 async def shutdown_event():
     await close_mongo_connection()
-
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(
-        "app.main:app",
-        host="0.0.0.0",
-        port=8000,
-        reload=True
-    )
