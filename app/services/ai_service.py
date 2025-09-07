@@ -1,8 +1,8 @@
-from openai import OpenAI
 import json
 import logging
 from typing import Dict, List
 from datetime import datetime
+from openai import AsyncOpenAI
 
 from ..config import settings
 
@@ -10,9 +10,7 @@ logger = logging.getLogger(__name__)
 
 class AIService:
     def __init__(self):
-        # Initialize the OpenAI client
-        self.ai = OpenAI(api_key=settings.OPENAI_API_KEY)
-
+        self.client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
         self.model = settings.OPENAI_MODEL
         self.max_tokens = settings.MAX_TOKENS
     
@@ -23,10 +21,12 @@ class AIService:
             unique_teams = len(set(fb.get("team_id") for fb in feedbacks if fb.get("team_id")))
             
             # Prepare feedback data for AI
-            feedback_data = [
-                {"team_id": fb.get("team_id"), "answers": fb.get("answers", {})}
-                for fb in feedbacks
-            ]
+            feedback_data = []
+            for fb in feedbacks:
+                feedback_data.append({
+                    "team_id": fb.get("team_id"),
+                    "answers": fb.get("answers", {})
+                })
             
             # Create prompt for OpenAI
             analysis_prompt = f"""
@@ -63,8 +63,8 @@ class AIService:
 ملاحظة: يجب أن تكون جميع النصوص باللغة العربية.
 """
             
-            # Get AI analysis
-            response = await self.ai.chat.completions.create(
+            # Get AI analysis using new OpenAI syntax
+            response = await self.client.chat.completions.create(
                 model=self.model,
                 messages=[
                     {"role": "system", "content": "أنت محلل بيانات خبير يقدم تحليلات دقيقة باللغة العربية في تنسيق JSON."},
@@ -76,6 +76,7 @@ class AIService:
             
             ai_result = json.loads(response.choices[0].message.content)
             
+            # Build the final response
             return {
                 "total_feedback_count": len(feedbacks),
                 "teams_analyzed": unique_teams,
