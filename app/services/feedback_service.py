@@ -5,6 +5,7 @@ from bson import ObjectId
 
 from ..models import FeedbackCreate, FeedbackResponse
 from ..database import get_database
+from ..config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -27,8 +28,8 @@ class FeedbackService:
             feedback_dict = feedback.dict()
             feedback_dict["created_at"] = datetime.utcnow()
             
-            # Insert into MongoDB
-            collection = database["feedbacks"]
+            # Insert into MongoDB - FIXED: Using correct collection name
+            collection = database[settings.COLLECTION_NAME]  # This will use "customer_feedback"
             result = await collection.insert_one(feedback_dict)
             
             # Retrieve the created feedback
@@ -49,7 +50,8 @@ class FeedbackService:
     ) -> List[FeedbackResponse]:
         """Get feedbacks with optional team_id filter."""
         try:
-            collection = database["feedbacks"]
+            # FIXED: Using correct collection name
+            collection = database[settings.COLLECTION_NAME]  # This will use "customer_feedback"
             
             # Build query
             query = {}
@@ -69,7 +71,8 @@ class FeedbackService:
     async def get_all_feedbacks(self, database) -> List[dict]:
         """Get all feedbacks for analysis."""
         try:
-            collection = database["feedbacks"]
+            # FIXED: Using correct collection name
+            collection = database[settings.COLLECTION_NAME]  # This will use "customer_feedback"
             cursor = collection.find({})
             feedbacks = await cursor.to_list(length=None)
             return feedbacks
