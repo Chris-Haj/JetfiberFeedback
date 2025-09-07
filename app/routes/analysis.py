@@ -1,7 +1,6 @@
 from fastapi import APIRouter, HTTPException, Depends
 import logging
 
-from ..models import AIAnalysisResponse
 from ..database import get_database
 from ..services import FeedbackService, AIService
 
@@ -11,7 +10,7 @@ router = APIRouter(tags=["analysis"])
 feedback_service = FeedbackService()
 ai_service = AIService()
 
-@router.get("/ai_analysis", response_model=AIAnalysisResponse)
+@router.get("/ai_analysis")
 async def get_ai_analysis(database=Depends(get_database)):
     """Send all feedback data to OpenAI for comprehensive analysis."""
     try:

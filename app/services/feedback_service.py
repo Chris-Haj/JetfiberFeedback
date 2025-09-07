@@ -14,12 +14,16 @@ class FeedbackService:
     @staticmethod
     def feedback_helper(feedback) -> dict:
         """Convert MongoDB document to response model."""
-        return {
-            "id": str(feedback["_id"]),
-            "team_id": feedback["team_id"],
-            "answers": feedback["answers"],
-            "created_at": feedback["created_at"]
-        }
+        try:
+            return {
+                "id": str(feedback["_id"]),
+                "team_id": feedback.get("team_id"),  # Use .get() to handle missing field
+                "answers": feedback.get("answers", {}),  # Use .get() with default
+                "created_at": feedback.get("created_at", datetime.utcnow())
+            }
+        except Exception as e:
+            logger.error(f"Error in feedback_helper: {e}, feedback: {feedback}")
+            raise
     
     async def create_feedback(self, feedback: FeedbackCreate, database) -> FeedbackResponse:
         """Create a new feedback entry."""
@@ -54,10 +58,16 @@ class FeedbackService:
             # Execute query with pagination
             cursor = collection.find({}).skip(skip).limit(limit).sort("created_at", -1)
             feedbacks = await cursor.to_list(length=limit)
-            print(feedbacks)
+            
+            # Log the first feedback to debug
+            if feedbacks:
+                logger.info(f"Sample feedback structure: {feedbacks[0].keys()}")
             
             return [self.feedback_helper(feedback) for feedback in feedbacks]
             
+        except KeyError as e:
+            logger.error(f"KeyError in get_feedbacks: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
         except Exception as e:
             logger.error(f"Error fetching feedbacks: {e}")
             raise

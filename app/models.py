@@ -26,31 +26,9 @@ class FeedbackResponse(BaseModel):
     created_at: datetime
 
 class AIAnalysisResponse(BaseModel):
-    total_feedbacks: int
-    team_performance: List[Dict]
-    sentiment_analysis: Dict
-    recommendations: List[str]
-    analysis_timestamp: datetime
-    
-class TeamRanking(BaseModel):
-    team_id: int
-    score: float
-    strengths: Optional[List[str]] = None
-    issues: Optional[List[str]] = None
-    improvement_suggestions: Optional[List[str]] = None
-
-class TeamRankings(BaseModel):
-    best_teams: List[TeamRanking]
-    teams_needing_improvement: List[TeamRanking]
-
-class Analysis(BaseModel):
-    overall_summary: str
-    team_rankings: TeamRankings
-
-class AIAnalysisResponse(BaseModel):
     total_feedback_count: int
     teams_analyzed: int
-    analysis: Analysis
+    analysis: Dict
     key_insights: List[str]
     recommendations: List[str]
-    analyzed_at: datetime
+    analyzed_at: str
